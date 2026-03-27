@@ -115,6 +115,14 @@ export const translations = {
     delete_account_confirm: 'Yes, delete my account',
     profile_settings: 'Settings',
 
+    // Theme / Appearance
+    theme: 'Theme',
+    theme_section: 'Appearance',
+    theme_light: 'Light',
+    theme_dark: 'Dark',
+    theme_system: 'System',
+    theme_hint: 'System follows your device setting. You can override it here.',
+
     // Notifications
     notifications: 'Notifications',
     notif_enable: 'Enable notifications',
@@ -239,6 +247,14 @@ export const translations = {
     confirm_with_password: 'Introduce tu contraseña para confirmar',
     delete_account_confirm: 'Sí, eliminar mi cuenta',
     profile_settings: 'Ajustes',
+
+    // Theme / Appearance
+    theme: 'Tema',
+    theme_section: 'Apariencia',
+    theme_light: 'Claro',
+    theme_dark: 'Oscuro',
+    theme_system: 'Sistema',
+    theme_hint: 'Sistema sigue la configuración de tu dispositivo. Puedes cambiarlo aquí.',
 
     // Notifications
     notifications: 'Notificaciones',
