@@ -1,4 +1,4 @@
-import { Calendar, Flag, Paperclip, Link2, Check } from 'lucide-react'
+import { Calendar, Flag, Paperclip, Link2, Check, RefreshCw } from 'lucide-react'
 import { format, isPast, isToday } from 'date-fns'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi } from '../../api/tasks'
@@ -28,6 +28,7 @@ export function TaskItem({ task }: TaskItemProps) {
     mutationFn: () => tasksApi.update(task.id, { completed: !task.completed }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
+
 
   const isOverdue = task.dueDate && isPast(new Date(task.dueDate)) && !task.completed
   const isDueToday = task.dueDate && isToday(new Date(task.dueDate))
@@ -78,6 +79,11 @@ export function TaskItem({ task }: TaskItemProps) {
           ))}
           {task.categories.length > 2 && <span className="text-xs text-gray-400">+{task.categories.length - 2}</span>}
 
+          {task.recurrence && (
+            <span className="flex items-center gap-0.5 text-xs text-blue-400">
+              <RefreshCw size={10} />
+            </span>
+          )}
           {task.attachments.length > 0 && (
             <span className="flex items-center gap-0.5 text-xs text-gray-400">
               <Paperclip size={11} /> {task.attachments.length}

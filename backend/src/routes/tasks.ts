@@ -3,6 +3,7 @@ import { body, query, validationResult } from 'express-validator'
 import { prisma } from '../lib/prisma'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { Priority, Prisma } from '@prisma/client'
+import { nextOccurrence, RecurrenceConfig } from '../lib/recurrence'
 
 const router = Router()
 router.use(authenticate)
@@ -70,12 +71,13 @@ router.post(
     body('dueDate').optional().isISO8601(),
     body('priority').optional().isIn(Object.values(Priority)),
     body('categoryIds').optional().isArray(),
+    body('recurrence').optional(),
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) { res.status(400).json({ errors: errors.array() }); return }
 
-    const { title, listId, columnId, description, url, dueDate, priority, categoryIds } = req.body
+    const { title, listId, columnId, description, url, dueDate, priority, categoryIds, recurrence } = req.body
     try {
       // If no columnId, assign to first column
       let resolvedColumnId = columnId || null
@@ -103,6 +105,7 @@ router.post(
           url,
           dueDate: dueDate ? new Date(dueDate) : null,
           priority: priority || 'NONE',
+          recurrence: recurrence ?? Prisma.JsonNull,
           position,
           categories: categoryIds?.length
             ? { create: categoryIds.map((id: string) => ({ categoryId: id })) }
@@ -131,6 +134,7 @@ router.patch(
     body('columnId').optional({ nullable: true }).isString(),
     body('position').optional().isInt({ min: 0 }),
     body('categoryIds').optional().isArray(),
+    body('recurrence').optional(),
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     const errors = validationResult(req)
@@ -177,7 +181,43 @@ router.patch(
         data: updateData as Prisma.TaskUpdateInput,
         include: taskInclude,
       })
-      res.json(updated)
+
+      // If a recurring task was just completed, spawn the next occurrence
+      let nextTask = null
+      if (completed === true && task.recurrence && task.dueDate) {
+        const config = task.recurrence as unknown as RecurrenceConfig
+        const nextDue = nextOccurrence(task.dueDate, config)
+
+        // Determine first column for the new task
+        const firstCol = await prisma.kanbanColumn.findFirst({
+          where: { userId: req.user!.userId },
+          orderBy: { position: 'asc' },
+        })
+
+        // Copy categories
+        const existingCats = await prisma.taskCategory.findMany({ where: { taskId: task.id } })
+
+        nextTask = await prisma.task.create({
+          data: {
+            userId: task.userId,
+            listId: task.listId,
+            columnId: firstCol?.id ?? null,
+            title: task.title,
+            description: task.description,
+            url: task.url,
+            priority: task.priority,
+            recurrence: task.recurrence as Prisma.InputJsonValue,
+            dueDate: nextDue,
+            position: 0,
+            categories: existingCats.length
+              ? { create: existingCats.map((tc) => ({ categoryId: tc.categoryId })) }
+              : undefined,
+          },
+          include: taskInclude,
+        })
+      }
+
+      res.json({ task: updated, nextTask })
     } catch (err) {
       console.error(err)
       res.status(500).json({ error: 'Internal server error' })

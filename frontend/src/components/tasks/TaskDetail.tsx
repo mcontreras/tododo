@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { X, Calendar, Link2, Paperclip, Trash2, Download, Tag, Check, AlertCircle, ExternalLink } from 'lucide-react'
+import { X, Calendar, Link2, Paperclip, Trash2, Download, Tag, Check, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react'
 import { format } from 'date-fns'
 import { tasksApi } from '../../api/tasks'
 import { categoriesApi } from '../../api/categories'
@@ -8,7 +8,8 @@ import { columnsApi } from '../../api/columns'
 import { useUIStore } from '../../store/uiStore'
 import { useI18n } from '../../store/i18nStore'
 import { Textarea, Input } from '../ui/Input'
-import { Category, Task, KanbanColumn } from '../../types'
+import { RecurrencePicker } from './RecurrencePicker'
+import { Category, Task, KanbanColumn, RecurrenceConfig } from '../../types'
 import { cn } from '../ui/cn'
 
 const PRIORITY_CONFIG = {
@@ -26,14 +27,15 @@ function formatFileSize(bytes: number) {
 
 export function TaskDetail() {
   const { selectedTaskId, setSelectedTask } = useUIStore()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const qc = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [nextTaskToast, setNextTaskToast] = useState<Date | null>(null)
 
-  useEffect(() => { setConfirmDelete(false) }, [selectedTaskId])
+  useEffect(() => { setConfirmDelete(false); setNextTaskToast(null) }, [selectedTaskId])
 
   const { data: task } = useQuery({
     queryKey: ['tasks', selectedTaskId],
@@ -46,7 +48,13 @@ export function TaskDetail() {
 
   const update = useMutation({
     mutationFn: (data: Parameters<typeof tasksApi.update>[1]) => tasksApi.update(task!.id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: ({ nextTask }) => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      if (nextTask?.dueDate) {
+        setNextTaskToast(new Date(nextTask.dueDate))
+        setTimeout(() => setNextTaskToast(null), 5000)
+      }
+    },
   })
 
   const deleteTask = useMutation({
@@ -166,6 +174,17 @@ export function TaskDetail() {
           </select>
         </div>
 
+        {/* Next occurrence toast */}
+        {nextTaskToast && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-xl animate-scale-in">
+            <RefreshCw size={13} className="text-blue-500 shrink-0" />
+            <p className="text-xs text-blue-700 font-medium">
+              {locale === 'es' ? 'Próxima repetición:' : 'Next occurrence:'}{' '}
+              <span className="font-bold">{format(nextTaskToast, 'MMM d, yyyy · HH:mm')}</span>
+            </p>
+          </div>
+        )}
+
         {/* Due date */}
         <div className="flex items-center gap-2.5">
           <Calendar size={14} className="text-gray-400 shrink-0" />
@@ -181,6 +200,15 @@ export function TaskDetail() {
           {task.dueDate && new Date(task.dueDate) < new Date() && !task.completed && (
             <AlertCircle size={14} className="text-red-400 shrink-0" />
           )}
+        </div>
+
+        {/* Recurrence */}
+        <div>
+          <p className="label flex items-center gap-1.5"><RefreshCw size={11} /> Repeat</p>
+          <RecurrencePicker
+            value={task.recurrence}
+            onChange={(cfg) => update.mutate({ recurrence: cfg ?? undefined })}
+          />
         </div>
 
         {task.list && (

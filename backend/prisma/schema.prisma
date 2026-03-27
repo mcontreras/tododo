@@ -80,6 +80,7 @@ model Task {
   dueDate     DateTime? @map("due_date")
   priority    Priority  @default(NONE)
   position    Int       @default(0)
+  recurrence  Json?
   completed   Boolean   @default(false)
   completedAt DateTime? @map("completed_at")
   createdAt   DateTime  @default(now()) @map("created_at")

@@ -36,6 +36,7 @@ export function KanbanBoard() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
 
+
   const createColumn = useMutation({
     mutationFn: () => columnsApi.create({ name: newColName.trim(), color: newColColor }),
     onSuccess: () => {

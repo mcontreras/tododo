@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -6,10 +7,12 @@ import { tasksApi, CreateTaskData } from '../../api/tasks'
 import { categoriesApi } from '../../api/categories'
 import { listsApi } from '../../api/lists'
 import { useUIStore } from '../../store/uiStore'
+import { useI18n } from '../../store/i18nStore'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
-import { Category } from '../../types'
+import { RecurrencePicker } from './RecurrencePicker'
+import { Category, RecurrenceConfig } from '../../types'
 import { cn } from '../ui/cn'
 
 const schema = z.object({
@@ -30,15 +33,17 @@ interface TaskFormProps {
 }
 
 const PRIORITIES = [
-  { value: 'NONE', label: 'None', color: '#9CA3AF' },
-  { value: 'LOW', label: 'Low', color: '#3B82F6' },
+  { value: 'NONE', label: 'None',   color: '#9CA3AF' },
+  { value: 'LOW',  label: 'Low',    color: '#3B82F6' },
   { value: 'MEDIUM', label: 'Medium', color: '#F59E0B' },
-  { value: 'HIGH', label: 'High', color: '#EF4444' },
+  { value: 'HIGH', label: 'High',   color: '#EF4444' },
 ]
 
 export function TaskForm({ open, onClose }: TaskFormProps) {
   const { selectedListId } = useUIStore()
+  const { t } = useI18n()
   const qc = useQueryClient()
+  const [recurrence, setRecurrence] = useState<RecurrenceConfig | null>(null)
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll })
   const { data: lists = [] } = useQuery({ queryKey: ['lists'], queryFn: listsApi.getAll })
@@ -53,6 +58,7 @@ export function TaskForm({ open, onClose }: TaskFormProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       reset()
+      setRecurrence(null)
       onClose()
     },
   })
@@ -63,32 +69,31 @@ export function TaskForm({ open, onClose }: TaskFormProps) {
       listId: data.listId || undefined,
       url: data.url || undefined,
       dueDate: data.dueDate || undefined,
+      recurrence: recurrence ?? undefined,
     })
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="New Task" size="lg">
+    <Modal open={open} onClose={onClose} title={t('new_task')} size="lg">
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-        <Input label="Title" placeholder="Task title..." error={errors.title?.message} {...register('title')} />
+        <Input label={t('title')} placeholder={t('title_placeholder')} error={errors.title?.message} {...register('title')} />
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">List</label>
+            <label className="label">{t('list')}</label>
             <select className="input" {...register('listId')}>
-              <option value="">No list</option>
-              {lists.map((l) => (
-                <option key={l.id} value={l.id}>{l.name}</option>
-              ))}
+              <option value="">{t('no_list')}</option>
+              {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Due Date</label>
+            <label className="label">{t('due_date')}</label>
             <input type="datetime-local" className="input" {...register('dueDate')} />
           </div>
         </div>
 
         <div>
-          <label className="label">Priority</label>
+          <label className="label">{t('priority')}</label>
           <Controller
             control={control}
             name="priority"
@@ -113,9 +118,15 @@ export function TaskForm({ open, onClose }: TaskFormProps) {
           />
         </div>
 
+        {/* Recurrence */}
+        <div>
+          <label className="label">Repeat</label>
+          <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+        </div>
+
         {categories.length > 0 && (
           <div>
-            <label className="label">Categories</label>
+            <label className="label">{t('categories')}</label>
             <Controller
               control={control}
               name="categoryIds"
@@ -150,14 +161,14 @@ export function TaskForm({ open, onClose }: TaskFormProps) {
         )}
 
         <div>
-          <label className="label">URL</label>
-          <Input placeholder="https://..." error={errors.url?.message} {...register('url')} />
+          <label className="label">{t('url')}</label>
+          <Input placeholder={t('url_placeholder')} error={errors.url?.message} {...register('url')} />
         </div>
 
         <div className="flex gap-2 pt-2 border-t border-gray-100">
-          <Button variant="secondary" onClick={onClose} className="flex-1" type="button">Cancel</Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1" type="button">{t('cancel')}</Button>
           <Button variant="primary" type="submit" loading={mutation.isPending} className="flex-1">
-            Create Task
+            {t('create_task')}
           </Button>
         </div>
       </form>

@@ -1,5 +1,5 @@
 import { api } from './client'
-import { Task, Priority } from '../types'
+import { Task, Priority, RecurrenceConfig } from '../types'
 
 export interface TaskFilters {
   listId?: string
@@ -16,11 +16,17 @@ export interface CreateTaskData {
   dueDate?: string
   priority?: Priority
   categoryIds?: string[]
+  recurrence?: RecurrenceConfig
 }
 
 export interface UpdateTaskData extends Partial<CreateTaskData> {
   completed?: boolean
   position?: number
+}
+
+export interface UpdateTaskResult {
+  task: Task
+  nextTask: Task | null
 }
 
 export const tasksApi = {
@@ -32,7 +38,7 @@ export const tasksApi = {
   create: (data: CreateTaskData) => api.post<Task>('/tasks', data).then((r) => r.data),
 
   update: (id: string, data: UpdateTaskData) =>
-    api.patch<Task>(`/tasks/${id}`, data).then((r) => r.data),
+    api.patch<UpdateTaskResult>(`/tasks/${id}`, data).then((r) => r.data),
 
   delete: (id: string) => api.delete(`/tasks/${id}`),
 

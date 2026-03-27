@@ -1,5 +1,13 @@
 export type Priority = 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH'
 
+export type RecurrenceType = 'daily' | 'weekly' | 'monthly'
+
+export interface RecurrenceConfig {
+  type: RecurrenceType
+  interval: number        // every N days / weeks / months
+  weekDays?: number[]     // ISO: 1=Mon … 7=Sun (only for weekly)
+}
+
 export interface User {
   id: string
   email: string
@@ -68,6 +76,7 @@ export interface Task {
   dueDate: string | null
   priority: Priority
   position: number
+  recurrence: RecurrenceConfig | null
   completed: boolean
   completedAt: string | null
   createdAt: string

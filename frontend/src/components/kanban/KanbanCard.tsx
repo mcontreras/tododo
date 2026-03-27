@@ -31,6 +31,7 @@ export function KanbanCard({ task, isDragging }: KanbanCardProps) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
 
+
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isSortableDragging ? 0.4 : 1 }
   const isOverdue = task.dueDate && isPast(new Date(task.dueDate)) && !task.completed
   const isSelected = selectedTaskId === task.id
