@@ -20,7 +20,6 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
           className="w-7 h-7 rounded-full transition-transform hover:scale-110 focus:outline-none"
           style={{
             backgroundColor: color,
-            ring: value === color ? `3px solid ${color}` : undefined,
             boxShadow: value === color ? `0 0 0 2px white, 0 0 0 4px ${color}` : undefined,
           }}
         />
