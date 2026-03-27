@@ -88,6 +88,17 @@ export const translations = {
 
     // Language
     language: 'Language',
+
+    // Notifications
+    notifications: 'Notifications',
+    notif_enable: 'Enable notifications',
+    notif_denied: 'Notifications blocked in browser settings',
+    notif_60min: 'Due in 1 hour',
+    notif_30min: 'Due in 30 minutes',
+    notif_15min: 'Due in 15 minutes',
+    notif_5min: 'Due in 5 minutes',
+    notif_due: 'Task is due now',
+    notif_overdue: 'Task is overdue',
   },
   es: {
     // Auth
@@ -176,6 +187,17 @@ export const translations = {
 
     // Language
     language: 'Idioma',
+
+    // Notifications
+    notifications: 'Notificaciones',
+    notif_enable: 'Activar notificaciones',
+    notif_denied: 'Notificaciones bloqueadas en el navegador',
+    notif_60min: 'Vence en 1 hora',
+    notif_30min: 'Vence en 30 minutos',
+    notif_15min: 'Vence en 15 minutos',
+    notif_5min: 'Vence en 5 minutos',
+    notif_due: 'La tarea vence ahora',
+    notif_overdue: 'La tarea está vencida',
   },
 } as const
 

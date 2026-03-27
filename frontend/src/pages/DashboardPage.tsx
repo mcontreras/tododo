@@ -4,10 +4,12 @@ import { Header } from '../components/layout/Header'
 import { TaskList } from '../components/tasks/TaskList'
 import { TaskDetail } from '../components/tasks/TaskDetail'
 import { KanbanBoard } from '../components/kanban/KanbanBoard'
+import { useTaskNotifications } from '../hooks/useTaskNotifications'
 import { cn } from '../components/ui/cn'
 
 export function DashboardPage() {
   const { view, selectedTaskId, sidebarOpen } = useUIStore()
+  useTaskNotifications()
 
   return (
     <div className="flex h-full overflow-hidden">
