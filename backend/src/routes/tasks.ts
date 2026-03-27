@@ -48,7 +48,7 @@ router.get(
 router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const task = await prisma.task.findFirst({
-      where: { id: req.params.id, userId: req.user!.userId },
+      where: { id: String(req.params.id), userId: req.user!.userId },
       include: taskInclude,
     })
     if (!task) { res.status(404).json({ error: 'Task not found' }); return }
@@ -136,14 +136,16 @@ router.patch(
     const errors = validationResult(req)
     if (!errors.isEmpty()) { res.status(400).json({ errors: errors.array() }); return }
 
+    const id = String(req.params.id)
     try {
       const task = await prisma.task.findFirst({
-        where: { id: req.params.id, userId: req.user!.userId },
+        where: { id, userId: req.user!.userId },
       })
       if (!task) { res.status(404).json({ error: 'Task not found' }); return }
 
       const { categoryIds, completed, dueDate, ...rest } = req.body
-      const updateData: Prisma.TaskUpdateInput = { ...rest }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updateData: Record<string, any> = { ...rest }
 
       if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
 
@@ -171,8 +173,8 @@ router.patch(
       }
 
       const updated = await prisma.task.update({
-        where: { id: req.params.id },
-        data: updateData,
+        where: { id },
+        data: updateData as Prisma.TaskUpdateInput,
         include: taskInclude,
       })
       res.json(updated)
@@ -184,10 +186,11 @@ router.patch(
 )
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+  const id = String(req.params.id)
   try {
-    const task = await prisma.task.findFirst({ where: { id: req.params.id, userId: req.user!.userId } })
+    const task = await prisma.task.findFirst({ where: { id, userId: req.user!.userId } })
     if (!task) { res.status(404).json({ error: 'Task not found' }); return }
-    await prisma.task.delete({ where: { id: req.params.id } })
+    await prisma.task.delete({ where: { id } })
     res.status(204).send()
   } catch (err) {
     console.error(err)

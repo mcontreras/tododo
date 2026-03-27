@@ -32,9 +32,7 @@ router.post(
       res.status(400).json({ errors: errors.array() })
       return
     }
-
     const { name, color } = req.body
-
     try {
       const category = await prisma.category.create({
         data: { userId: req.user!.userId, name, color: color || '#6B7280' },
@@ -59,20 +57,11 @@ router.patch(
       res.status(400).json({ errors: errors.array() })
       return
     }
-
+    const id = String(req.params.id)
     try {
-      const cat = await prisma.category.findFirst({
-        where: { id: req.params.id, userId: req.user!.userId },
-      })
-      if (!cat) {
-        res.status(404).json({ error: 'Category not found' })
-        return
-      }
-
-      const updated = await prisma.category.update({
-        where: { id: req.params.id },
-        data: req.body,
-      })
+      const cat = await prisma.category.findFirst({ where: { id, userId: req.user!.userId } })
+      if (!cat) { res.status(404).json({ error: 'Category not found' }); return }
+      const updated = await prisma.category.update({ where: { id }, data: req.body })
       res.json(updated)
     } catch (err) {
       console.error(err)
@@ -82,16 +71,11 @@ router.patch(
 )
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+  const id = String(req.params.id)
   try {
-    const cat = await prisma.category.findFirst({
-      where: { id: req.params.id, userId: req.user!.userId },
-    })
-    if (!cat) {
-      res.status(404).json({ error: 'Category not found' })
-      return
-    }
-
-    await prisma.category.delete({ where: { id: req.params.id } })
+    const cat = await prisma.category.findFirst({ where: { id, userId: req.user!.userId } })
+    if (!cat) { res.status(404).json({ error: 'Category not found' }); return }
+    await prisma.category.delete({ where: { id } })
     res.status(204).send()
   } catch (err) {
     console.error(err)

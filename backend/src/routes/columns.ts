@@ -28,10 +28,7 @@ router.post(
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() })
-      return
-    }
+    if (!errors.isEmpty()) { res.status(400).json({ errors: errors.array() }); return }
     const { name, color } = req.body
     try {
       const maxPos = await prisma.kanbanColumn.aggregate({
@@ -59,16 +56,12 @@ router.patch(
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() })
-      return
-    }
+    if (!errors.isEmpty()) { res.status(400).json({ errors: errors.array() }); return }
+    const id = String(req.params.id)
     try {
-      const col = await prisma.kanbanColumn.findFirst({
-        where: { id: req.params.id, userId: req.user!.userId },
-      })
+      const col = await prisma.kanbanColumn.findFirst({ where: { id, userId: req.user!.userId } })
       if (!col) { res.status(404).json({ error: 'Column not found' }); return }
-      const updated = await prisma.kanbanColumn.update({ where: { id: req.params.id }, data: req.body })
+      const updated = await prisma.kanbanColumn.update({ where: { id }, data: req.body })
       res.json(updated)
     } catch (err) {
       console.error(err)
@@ -78,15 +71,12 @@ router.patch(
 )
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+  const id = String(req.params.id)
   try {
-    const col = await prisma.kanbanColumn.findFirst({
-      where: { id: req.params.id, userId: req.user!.userId },
-    })
+    const col = await prisma.kanbanColumn.findFirst({ where: { id, userId: req.user!.userId } })
     if (!col) { res.status(404).json({ error: 'Column not found' }); return }
-
-    // Move tasks in this column to null
-    await prisma.task.updateMany({ where: { columnId: req.params.id }, data: { columnId: null } })
-    await prisma.kanbanColumn.delete({ where: { id: req.params.id } })
+    await prisma.task.updateMany({ where: { columnId: id }, data: { columnId: null } })
+    await prisma.kanbanColumn.delete({ where: { id } })
     res.status(204).send()
   } catch (err) {
     console.error(err)

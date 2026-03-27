@@ -19,7 +19,7 @@ router.post(
 
     try {
       const task = await prisma.task.findFirst({
-        where: { id: req.params.taskId, userId: req.user!.userId },
+        where: { id: String(req.params.taskId), userId: req.user!.userId },
       })
       if (!task) {
         fs.unlinkSync(req.file.path)
@@ -47,12 +47,12 @@ router.post(
 
 router.get('/attachments/:id/download', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const attachment = await prisma.attachment.findUnique({
-      where: { id: req.params.id },
-      include: { task: { select: { userId: true } } },
+    // Check ownership via nested where — avoids include typing issues
+    const attachment = await prisma.attachment.findFirst({
+      where: { id: String(req.params.id), task: { userId: req.user!.userId } },
     })
 
-    if (!attachment || attachment.task.userId !== req.user!.userId) {
+    if (!attachment) {
       res.status(404).json({ error: 'Attachment not found' })
       return
     }
@@ -74,22 +74,19 @@ router.get('/attachments/:id/download', async (req: AuthRequest, res: Response):
 
 router.delete('/attachments/:id', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const attachment = await prisma.attachment.findUnique({
-      where: { id: req.params.id },
-      include: { task: { select: { userId: true } } },
+    const attachment = await prisma.attachment.findFirst({
+      where: { id: String(req.params.id), task: { userId: req.user!.userId } },
     })
 
-    if (!attachment || attachment.task.userId !== req.user!.userId) {
+    if (!attachment) {
       res.status(404).json({ error: 'Attachment not found' })
       return
     }
 
     const filePath = path.join(UPLOAD_DIR, attachment.filename)
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath)
-    }
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
 
-    await prisma.attachment.delete({ where: { id: req.params.id } })
+    await prisma.attachment.delete({ where: { id: String(req.params.id) } })
     res.status(204).send()
   } catch (err) {
     console.error(err)

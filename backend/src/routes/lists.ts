@@ -29,20 +29,14 @@ router.post(
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() })
-      return
-    }
-
+    if (!errors.isEmpty()) { res.status(400).json({ errors: errors.array() }); return }
     const { name, color, icon } = req.body
-
     try {
       const maxPos = await prisma.list.aggregate({
         where: { userId: req.user!.userId },
         _max: { position: true },
       })
       const position = (maxPos._max.position ?? -1) + 1
-
       const list = await prisma.list.create({
         data: { userId: req.user!.userId, name, color: color || '#3B82F6', icon: icon || 'list', position },
       })
@@ -64,24 +58,12 @@ router.patch(
   ],
   async (req: AuthRequest, res: Response): Promise<void> => {
     const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() })
-      return
-    }
-
+    if (!errors.isEmpty()) { res.status(400).json({ errors: errors.array() }); return }
+    const id = String(req.params.id)
     try {
-      const list = await prisma.list.findFirst({
-        where: { id: req.params.id, userId: req.user!.userId },
-      })
-      if (!list) {
-        res.status(404).json({ error: 'List not found' })
-        return
-      }
-
-      const updated = await prisma.list.update({
-        where: { id: req.params.id },
-        data: req.body,
-      })
+      const list = await prisma.list.findFirst({ where: { id, userId: req.user!.userId } })
+      if (!list) { res.status(404).json({ error: 'List not found' }); return }
+      const updated = await prisma.list.update({ where: { id }, data: req.body })
       res.json(updated)
     } catch (err) {
       console.error(err)
@@ -91,16 +73,11 @@ router.patch(
 )
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+  const id = String(req.params.id)
   try {
-    const list = await prisma.list.findFirst({
-      where: { id: req.params.id, userId: req.user!.userId },
-    })
-    if (!list) {
-      res.status(404).json({ error: 'List not found' })
-      return
-    }
-
-    await prisma.list.delete({ where: { id: req.params.id } })
+    const list = await prisma.list.findFirst({ where: { id, userId: req.user!.userId } })
+    if (!list) { res.status(404).json({ error: 'List not found' }); return }
+    await prisma.list.delete({ where: { id } })
     res.status(204).send()
   } catch (err) {
     console.error(err)
