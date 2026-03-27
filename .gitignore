@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+build/
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.production
+**/.env
+**/.env.local
+
+# Uploads (user data)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Prisma generated
+**/generated/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker volumes (if mounted locally)
+pgdata/

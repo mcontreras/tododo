@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  avatar       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  lists         List[]
+  tasks         Task[]
+  categories    Category[]
+  kanbanColumns KanbanColumn[]
+
+  @@map("users")
+}
+
+model List {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String   @default("#3B82F6")
+  icon      String   @default("list")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@map("lists")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String   @default("#6B7280")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks TaskCategory[]
+
+  @@map("categories")
+}
+
+model KanbanColumn {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String   @default("#6B7280")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@map("kanban_columns")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  listId      String?   @map("list_id")
+  columnId    String?   @map("column_id")
+  title       String
+  description String?
+  url         String?
+  dueDate     DateTime? @map("due_date")
+  priority    Priority  @default(NONE)
+  position    Int       @default(0)
+  completed   Boolean   @default(false)
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  list        List?          @relation(fields: [listId], references: [id], onDelete: SetNull)
+  column      KanbanColumn?  @relation(fields: [columnId], references: [id], onDelete: SetNull)
+  categories  TaskCategory[]
+  attachments Attachment[]
+
+  @@map("tasks")
+}
+
+model TaskCategory {
+  taskId     String @map("task_id")
+  categoryId String @map("category_id")
+
+  task     Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, categoryId])
+  @@map("task_categories")
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  taskId       String   @map("task_id")
+  filename     String
+  originalName String   @map("original_name")
+  size         Int
+  mimeType     String   @map("mime_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+enum Priority {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+}

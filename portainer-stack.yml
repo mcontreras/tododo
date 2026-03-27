@@ -1,0 +1,76 @@
+version: "3.8"
+
+# ─────────────────────────────────────────────────────────────
+#  Tododo — Portainer Stack
+#
+#  Variables de entorno requeridas (configura en Portainer → Stacks → Env):
+#    POSTGRES_PASSWORD   Contraseña de PostgreSQL (¡cámbiala!)
+#    JWT_SECRET          Secreto JWT — genera con: openssl rand -base64 48
+#
+#  Variables opcionales:
+#    POSTGRES_DB         Nombre de la BD       (default: tododo)
+#    POSTGRES_USER       Usuario de PostgreSQL  (default: tododo)
+#    JWT_EXPIRES_IN      Expiración del token   (default: 7d)
+#    APP_PORT            Puerto expuesto        (default: 3000)
+#    MAX_FILE_SIZE       Tamaño máx. de subida  (default: 10485760 = 10 MB)
+# ─────────────────────────────────────────────────────────────
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tododo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tododo}
+      POSTGRES_USER: ${POSTGRES_USER:-tododo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Portainer env}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tododo} -d ${POSTGRES_DB:-tododo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tododo-net
+
+  backend:
+    image: ghcr.io/${GITHUB_USER:-manu}/tododo-backend:latest
+    container_name: tododo-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tododo}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tododo}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in Portainer env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 4000
+      NODE_ENV: production
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tododo-net
+
+  frontend:
+    image: ghcr.io/${GITHUB_USER:-manu}/tododo-frontend:latest
+    container_name: tododo-frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - tododo-net
+
+volumes:
+  db_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  tododo-net:
+    driver: bridge
