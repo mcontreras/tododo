@@ -84,7 +84,7 @@ export function TaskDetail() {
   }
 
   return (
-    <aside className="flex flex-col h-full bg-white border-l border-gray-100 overflow-y-auto animate-slide-in">
+    <aside key={task.id} className="flex flex-col h-full bg-white dark:bg-dark-secondary border-l border-gray-100 dark:border-dark-border overflow-y-auto animate-slide-in transition-colors">
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
         <div className="flex items-center gap-2">
@@ -187,18 +187,27 @@ export function TaskDetail() {
 
         {/* Due date */}
         <div className="flex items-center gap-2.5">
-          <Calendar size={14} className="text-gray-400 shrink-0" />
+          <Calendar size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
           <div className="flex-1">
-            <p className="text-xs text-gray-400 mb-0.5">{t('due_date')}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{t('due_date')}</p>
             <input
               type="datetime-local"
-              className="text-sm text-gray-700 bg-transparent border-none outline-none w-full cursor-pointer"
+              className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-none outline-none w-full cursor-pointer dark:[color-scheme:dark]"
               value={task.dueDate ? task.dueDate.slice(0, 16) : ''}
               onChange={(e) => update.mutate({ dueDate: e.target.value || undefined })}
             />
           </div>
           {task.dueDate && new Date(task.dueDate) < new Date() && !task.completed && (
             <AlertCircle size={14} className="text-red-400 shrink-0" />
+          )}
+          {task.dueDate && (
+            <button
+              onClick={() => update.mutate({ dueDate: undefined })}
+              className="p-1 rounded-md text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/10 transition-colors shrink-0"
+              title={t('clear_date')}
+            >
+              <X size={13} />
+            </button>
           )}
         </div>
 
