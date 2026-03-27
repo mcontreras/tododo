@@ -9,6 +9,7 @@ import { tasksApi } from '../../api/tasks'
 import { columnsApi } from '../../api/columns'
 import { useUIStore } from '../../store/uiStore'
 import { useI18n } from '../../store/i18nStore'
+import { applySmartFilter } from '../../lib/dateFilters'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCard } from './KanbanCard'
 import { Task, KanbanColumn as KanbanColumnType } from '../../types'
@@ -20,7 +21,7 @@ export function KanbanBoard() {
   const [showAddCol, setShowAddCol] = useState(false)
   const [newColName, setNewColName] = useState('')
   const [newColColor, setNewColColor] = useState('#6B7280')
-  const { selectedListId, showCompleted } = useUIStore()
+  const { selectedListId, smartFilter, showCompleted } = useUIStore()
   const { t } = useI18n()
   const qc = useQueryClient()
 
@@ -47,7 +48,8 @@ export function KanbanBoard() {
   })
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
-  const tasks = showCompleted ? allTasks : allTasks.filter((t: Task) => !t.completed)
+  const filtered = smartFilter ? applySmartFilter(allTasks, smartFilter) : allTasks
+  const tasks = showCompleted ? filtered : filtered.filter((t: Task) => !t.completed)
 
   function getTasksByColumn(columnId: string): Task[] {
     return tasks.filter((t: Task) => t.columnId === columnId)

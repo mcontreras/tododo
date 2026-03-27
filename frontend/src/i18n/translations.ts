@@ -22,6 +22,8 @@ export const translations = {
 
     // Sidebar
     all_tasks: 'All Tasks',
+    filter_today: 'Today',
+    filter_week: 'This Week',
     my_lists: 'My Lists',
     sign_out: 'Sign out',
 
@@ -145,6 +147,8 @@ export const translations = {
 
     // Sidebar
     all_tasks: 'Todas las tareas',
+    filter_today: 'Hoy',
+    filter_week: 'Esta semana',
     my_lists: 'Mis listas',
     sign_out: 'Cerrar sesión',
 

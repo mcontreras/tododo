@@ -8,13 +8,14 @@ import { notificationService } from '../../services/notificationService'
 import { cn } from '../ui/cn'
 
 export function Header() {
-  const { selectedListId, view, setView, showCompleted, toggleShowCompleted, toggleSidebar } = useUIStore()
+  const { selectedListId, smartFilter, view, setView, showCompleted, toggleShowCompleted, toggleSidebar } = useUIStore()
   const { t, locale, setLocale } = useI18n()
   const { enabled, toggle } = useNotifStore()
   const { data: lists = [] } = useQuery({ queryKey: ['lists'], queryFn: listsApi.getAll })
 
   const currentList = lists.find((l) => l.id === selectedListId)
-  const title = currentList?.name || t('all_tasks')
+  const smartTitle = smartFilter === 'today' ? t('filter_today') : smartFilter === 'week' ? t('filter_week') : null
+  const title = smartTitle ?? currentList?.name ?? t('all_tasks')
   const color = currentList?.color || '#3B82F6'
   const isDenied = notificationService.isDenied()
 
@@ -34,7 +35,7 @@ export function Header() {
       </button>
 
       <div className="flex items-center gap-2.5 flex-1 min-w-0">
-        {currentList && <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />}
+        {currentList && !smartFilter && <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />}
         <h1 className="text-lg font-bold text-gray-900 truncate">{title}</h1>
       </div>
 

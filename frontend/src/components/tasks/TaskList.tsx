@@ -4,22 +4,29 @@ import { Plus } from 'lucide-react'
 import { tasksApi } from '../../api/tasks'
 import { useUIStore } from '../../store/uiStore'
 import { useI18n } from '../../store/i18nStore'
+import { applySmartFilter } from '../../lib/dateFilters'
 import { TaskItem } from './TaskItem'
 import { TaskForm } from './TaskForm'
 import { Task } from '../../types'
 
 export function TaskList() {
   const [showForm, setShowForm] = useState(false)
-  const { selectedListId, showCompleted } = useUIStore()
+  const { selectedListId, smartFilter, showCompleted } = useUIStore()
   const { t } = useI18n()
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: allTasks = [], isLoading } = useQuery({
     queryKey: ['tasks', { listId: selectedListId }],
     queryFn: () => tasksApi.getAll(selectedListId ? { listId: selectedListId } : undefined),
   })
 
+  // Apply smart date filter if active
+  const tasks = smartFilter ? applySmartFilter(allTasks, smartFilter) : allTasks
+
   const pending = tasks.filter((t: Task) => !t.completed)
   const completed = tasks.filter((t: Task) => t.completed)
+
+  // Smart filter views are read-only (can't add to "Today" directly)
+  const canAddTask = !smartFilter
 
   if (isLoading) {
     return (
@@ -34,13 +41,15 @@ export function TaskList() {
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4">
-      <button
-        onClick={() => setShowForm(true)}
-        className="flex items-center gap-2 w-full px-4 py-2.5 mb-4 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all group"
-      >
-        <Plus size={16} className="group-hover:scale-110 transition-transform" />
-        <span className="text-sm font-medium">{t('add_task')}</span>
-      </button>
+      {canAddTask && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 w-full px-4 py-2.5 mb-4 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all group"
+        >
+          <Plus size={16} className="group-hover:scale-110 transition-transform" />
+          <span className="text-sm font-medium">{t('add_task')}</span>
+        </button>
+      )}
 
       {pending.length === 0 && completed.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">

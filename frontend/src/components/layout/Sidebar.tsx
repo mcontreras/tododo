@@ -1,11 +1,14 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Inbox, List, Tag, Plus, Trash2, Settings, ChevronDown, LayoutGrid, Sun, BarChart2, Check, X } from 'lucide-react'
+import { Inbox, List, Tag, Plus, Trash2, Settings, ChevronDown, LayoutGrid, Sun, BarChart2, Check, X, CalendarDays, Calendar } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { isToday, isThisWeek } from 'date-fns'
 import { listsApi } from '../../api/lists'
+import { tasksApi } from '../../api/tasks'
 import { useUIStore } from '../../store/uiStore'
 import { useAuthStore } from '../../store/authStore'
 import { useI18n } from '../../store/i18nStore'
+import { Task } from '../../types'
 import { Modal } from '../ui/Modal'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
@@ -146,12 +149,21 @@ function ListItem({ list, isSelected, onClick }: { list: ListType; isSelected: b
 export function Sidebar() {
   const [showCreateList, setShowCreateList] = useState(false)
   const [showLists, setShowLists] = useState(true)
-  const { selectedListId, setSelectedList } = useUIStore()
+  const { selectedListId, smartFilter, setSelectedList, setSmartFilter } = useUIStore()
   const { user } = useAuthStore()
   const { t } = useI18n()
   const navigate = useNavigate()
 
   const { data: lists = [] } = useQuery({ queryKey: ['lists'], queryFn: listsApi.getAll })
+
+  // Count tasks for smart filters (all tasks, no list filter)
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ['tasks', {}],
+    queryFn: () => tasksApi.getAll(),
+    select: (tasks: Task[]) => tasks.filter((t) => !t.completed),
+  })
+  const todayCount = allTasks.filter((t: Task) => t.dueDate && isToday(new Date(t.dueDate))).length
+  const weekCount = allTasks.filter((t: Task) => t.dueDate && isThisWeek(new Date(t.dueDate), { weekStartsOn: 1 })).length
 
   return (
     <aside className="flex flex-col h-full bg-surface-secondary border-r border-gray-200/80 select-none">
@@ -172,9 +184,38 @@ export function Sidebar() {
       </div>
 
       <div className="px-3 pb-2 space-y-0.5">
-        <button onClick={() => setSelectedList(null)} className={cn('sidebar-item w-full', !selectedListId && 'active')}>
+        <button
+          onClick={() => setSelectedList(null)}
+          className={cn('sidebar-item w-full', !selectedListId && !smartFilter && 'active')}
+        >
           <Inbox size={16} className="text-blue-500 shrink-0" />
           <span className="flex-1 text-left">{t('all_tasks')}</span>
+        </button>
+
+        <button
+          onClick={() => setSmartFilter('today')}
+          className={cn('sidebar-item w-full', smartFilter === 'today' && 'active')}
+        >
+          <CalendarDays size={16} className="text-orange-400 shrink-0" />
+          <span className="flex-1 text-left">{t('filter_today')}</span>
+          {todayCount > 0 && (
+            <span className="text-xs font-semibold text-orange-400 bg-orange-50 px-1.5 py-0.5 rounded-full">
+              {todayCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setSmartFilter('week')}
+          className={cn('sidebar-item w-full', smartFilter === 'week' && 'active')}
+        >
+          <Calendar size={16} className="text-violet-400 shrink-0" />
+          <span className="flex-1 text-left">{t('filter_week')}</span>
+          {weekCount > 0 && (
+            <span className="text-xs font-semibold text-violet-400 bg-violet-50 px-1.5 py-0.5 rounded-full">
+              {weekCount}
+            </span>
+          )}
         </button>
       </div>
 
