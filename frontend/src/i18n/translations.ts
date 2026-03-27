@@ -89,6 +89,30 @@ export const translations = {
     // Language
     language: 'Language',
 
+    // Profile
+    profile_title: 'My Account',
+    profile_details: 'Profile',
+    email_readonly: 'Email cannot be changed.',
+    save_changes: 'Save changes',
+    saved: 'Saved',
+    error_generic: 'Something went wrong.',
+    change_password: 'Change password',
+    current_password: 'Current password',
+    new_password: 'New password',
+    confirm_password: 'Confirm new password',
+    wrong_current_password: 'Current password is incorrect.',
+    password_changed: 'Password changed',
+    danger_zone: 'Danger zone',
+    delete_account: 'Delete account',
+    delete_account_desc: 'Deleting your account is permanent and cannot be undone.',
+    delete_account_warn1: 'All your tasks and lists will be deleted.',
+    delete_account_warn2: 'All your files and attachments will be deleted.',
+    delete_account_warn3: 'Your account cannot be recovered.',
+    delete_account_final_warn: 'This action is irreversible. All your data will be permanently deleted.',
+    confirm_with_password: 'Enter your password to confirm',
+    delete_account_confirm: 'Yes, delete my account',
+    profile_settings: 'Settings',
+
     // Notifications
     notifications: 'Notifications',
     notif_enable: 'Enable notifications',
@@ -187,6 +211,30 @@ export const translations = {
 
     // Language
     language: 'Idioma',
+
+    // Profile
+    profile_title: 'Mi cuenta',
+    profile_details: 'Perfil',
+    email_readonly: 'El email no se puede cambiar.',
+    save_changes: 'Guardar cambios',
+    saved: 'Guardado',
+    error_generic: 'Algo ha salido mal.',
+    change_password: 'Cambiar contraseña',
+    current_password: 'Contraseña actual',
+    new_password: 'Nueva contraseña',
+    confirm_password: 'Confirmar nueva contraseña',
+    wrong_current_password: 'La contraseña actual es incorrecta.',
+    password_changed: 'Contraseña cambiada',
+    danger_zone: 'Zona de peligro',
+    delete_account: 'Eliminar cuenta',
+    delete_account_desc: 'Eliminar tu cuenta es permanente y no se puede deshacer.',
+    delete_account_warn1: 'Se eliminarán todas tus tareas y listas.',
+    delete_account_warn2: 'Se eliminarán todos tus archivos adjuntos.',
+    delete_account_warn3: 'Tu cuenta no podrá recuperarse.',
+    delete_account_final_warn: 'Esta acción es irreversible. Todos tus datos serán eliminados permanentemente.',
+    confirm_with_password: 'Introduce tu contraseña para confirmar',
+    delete_account_confirm: 'Sí, eliminar mi cuenta',
+    profile_settings: 'Ajustes',
 
     // Notifications
     notifications: 'Notificaciones',

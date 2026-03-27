@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Inbox, List, Tag, Plus, Trash2, Settings, ChevronDown, LayoutGrid, Sun, BarChart2, Check, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '../../api/lists'
@@ -146,8 +147,9 @@ export function Sidebar() {
   const [showCreateList, setShowCreateList] = useState(false)
   const [showLists, setShowLists] = useState(true)
   const { selectedListId, setSelectedList } = useUIStore()
-  const { user, logout } = useAuthStore()
+  const { user } = useAuthStore()
   const { t } = useI18n()
+  const navigate = useNavigate()
 
   const { data: lists = [] } = useQuery({ queryKey: ['lists'], queryFn: listsApi.getAll })
 
@@ -163,7 +165,7 @@ export function Sidebar() {
             <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
             <p className="text-xs text-gray-400 truncate">{user?.email}</p>
           </div>
-          <button onClick={logout} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-200/80 transition-colors" title={t('sign_out')}>
+          <button onClick={() => navigate('/profile')} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-200/80 transition-colors" title={t('profile_settings')}>
             <Settings size={15} />
           </button>
         </div>

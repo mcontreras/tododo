@@ -155,4 +155,33 @@ router.patch(
   }
 )
 
+router.delete(
+  '/me',
+  authenticate,
+  [body('password').notEmpty()],
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() })
+      return
+    }
+
+    const { password } = req.body
+    try {
+      const user = await prisma.user.findUnique({ where: { id: req.user!.userId } })
+      if (!user) { res.status(404).json({ error: 'User not found' }); return }
+
+      const valid = await bcrypt.compare(password, user.passwordHash)
+      if (!valid) { res.status(400).json({ error: 'Incorrect password' }); return }
+
+      // Cascade deletes everything via onDelete: Cascade in schema
+      await prisma.user.delete({ where: { id: user.id } })
+      res.status(204).send()
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+)
+
 export default router

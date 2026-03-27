@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ProfilePage } from './pages/ProfilePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,10 @@ export default function App() {
           <Route
             path="/register"
             element={<PublicRoute><RegisterPage /></PublicRoute>}
+          />
+          <Route
+            path="/profile"
+            element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
           />
           <Route
             path="/*"
