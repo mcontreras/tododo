@@ -2,7 +2,7 @@ import { Router, Response } from 'express'
 import { body, query, validationResult } from 'express-validator'
 import { prisma } from '../lib/prisma'
 import { authenticate, AuthRequest } from '../middleware/auth'
-import { Priority } from '@prisma/client'
+import { Priority, Prisma } from '@prisma/client'
 
 const router = Router()
 router.use(authenticate)
@@ -27,9 +27,9 @@ router.get(
 
     const { listId, columnId, completed } = req.query
     try {
-      const where: Record<string, unknown> = { userId: req.user!.userId }
-      if (listId) where.listId = listId as string
-      if (columnId) where.columnId = columnId as string
+      const where: Prisma.TaskWhereInput = { userId: req.user!.userId }
+      if (listId) where.listId = String(listId)
+      if (columnId) where.columnId = String(columnId)
       if (completed !== undefined) where.completed = completed === 'true'
 
       const tasks = await prisma.task.findMany({
@@ -143,7 +143,7 @@ router.patch(
       if (!task) { res.status(404).json({ error: 'Task not found' }); return }
 
       const { categoryIds, completed, dueDate, ...rest } = req.body
-      const updateData: Record<string, unknown> = { ...rest }
+      const updateData: Prisma.TaskUpdateInput = { ...rest }
 
       if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
 

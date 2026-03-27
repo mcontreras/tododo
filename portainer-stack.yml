@@ -35,7 +35,7 @@ services:
       - tododo-net
 
   backend:
-    image: ghcr.io/${GITHUB_USER:-manu}/tododo-backend:latest
+    image: ghcr.io/mcontreras/tododo-backend:latest
     container_name: tododo-backend
     restart: unless-stopped
     environment:
@@ -55,7 +55,7 @@ services:
       - tododo-net
 
   frontend:
-    image: ghcr.io/${GITHUB_USER:-manu}/tododo-frontend:latest
+    image: ghcr.io/mcontreras/tododo-frontend:latest
     container_name: tododo-frontend
     restart: unless-stopped
     ports:
